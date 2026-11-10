@@ -1,0 +1,15 @@
+# sudo cp thermoswarm-agent.service /etc/systemd/system/ && sudo systemctl enable --now thermoswarm-agent
+[Unit]
+Description=ThermoSwarm onboard agent
+After=network-online.target roscore.service clover.service technic.service
+Wants=network-online.target
+
+[Service]
+User=orangepi
+WorkingDirectory=/home/orangepi/thermoswarm
+ExecStart=/bin/bash -lc 'source /home/orangepi/technic_ws/devel/setup.bash && exec python3 agent.py'
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
