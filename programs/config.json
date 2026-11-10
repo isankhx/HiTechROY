@@ -1,0 +1,85 @@
+{
+  "server": {
+    "http_host": "127.0.0.1",
+    "http_port": 8080,
+    "drone_host": "0.0.0.0",
+    "drone_port": 7700
+  },
+  "map_file": "aruco_map.txt",
+  "flight_bounds": [-3.6, 3.6, -2.1, 2.1],
+  "survey_bounds": [-3.75, 3.75, -2.25, 2.25],
+
+  "separation": {
+    "drone_radius_m": 0.28,
+    "min_gap_m": 0.5,
+    "position_margin_m": 0.1,
+    "lookahead_m": 2.5
+  },
+  "link": {
+    "hold_after_s": 1.5,
+    "land_after_s": 6.0
+  },
+  "localization": {
+    "hold_after_s": 2.0,
+    "land_after_s": 10.0
+  },
+  "battery": {
+    "cell_warn_v": 3.5,
+    "cell_land_v": 3.4
+  },
+  "flight": {
+    "takeoff_alt_m": 1.0,
+    "takeoff_stagger_s": 2.0,
+    "lock_timeout_s": 15.0,
+    "speed_mps": 0.4,
+    "step_m": 0.5,
+    "yaw_deg": 0,
+    "max_mission_s": 900
+  },
+  "thermal": {
+    "alt_m": 2.0,
+    "speed_mps": 0.3,
+    "hfov_deg": 55,
+    "vfov_deg": 35,
+    "rotate_deg": 0,
+    "flip_h": false,
+    "flip_v": false,
+    "overlap": 0.3,
+    "threshold": 3.0,
+    "min_pixels": 2,
+    "target_height_m": 0.0,
+    "merge_radius_m": 0.6,
+    "confirm_observations": 2,
+    "max_tilt_deg": 20,
+    "grid_cell_m": 0.05,
+    "display_range": [-2.0, 10.0]
+  },
+  "inspect": {
+    "cruise_alt_m": 1.3,
+    "photo_alt_m": 1.0,
+    "settle_s": 2.0,
+    "task_timeout_s": 90
+  },
+  "yolo": {
+    "weights": "models/rgb.pt",
+    "conf": 0.35,
+    "imgsz": 640,
+    "ignore_classes": ["drone"]
+  },
+  "drones": [
+    {"id": "T1", "name": "Техник-1 · тепло", "role": "thermal", "priority": 3, "color": "#ff7a45"},
+    {"id": "T2", "name": "Техник-2 · фото", "role": "rgb", "priority": 2, "color": "#4aa8ff"},
+    {"id": "T3", "name": "Техник-3 · фото", "role": "rgb", "priority": 1, "color": "#5fd17a"}
+  ],
+
+  "sim": {
+    "starts": [[0.0, -1.5], [-2.25, -1.5], [2.25, -1.5]],
+    "ambient_c": 21.0,
+    "objects": [
+      {"x": -1.9, "y": 0.9,  "dT": 9.0, "r": 0.18, "cls": "fire"},
+      {"x": 1.4,  "y": 1.2,  "dT": 7.0, "r": 0.15, "cls": "person"},
+      {"x": 2.6,  "y": -0.4, "dT": 6.0, "r": 0.12, "cls": "battery"},
+      {"x": -0.4, "y": -0.6, "dT": 5.0, "r": 0.15, "cls": null}
+    ]
+  }
+}

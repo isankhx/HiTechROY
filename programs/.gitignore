@@ -1,0 +1,9 @@
+runs/
+dataset/
+models/*.pt
+__pycache__/
+*.pyc
+board/agent.json
+board/thermal_probe.csv
+tests/last_server.log
+tests/last_faults.log
