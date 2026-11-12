@@ -1,0 +1,258 @@
+{
+ "date": "2026-11-11 00:33",
+ "speed": 4.0,
+ "results": [
+  {
+   "mode": "swarm",
+   "drones": "T1,T2,T3",
+   "mission_s": 157.6,
+   "coverage_pct": 97.4,
+   "anomalies": 4,
+   "inspected": 4,
+   "photos": 20,
+   "latency_mean_s": 42.9,
+   "latency_max_s": 73.9,
+   "labels": {
+    "A1": null,
+    "A2": "battery",
+    "A3": "fire",
+    "A4": "person"
+   },
+   "min_dist_m": 1.268,
+   "run_dir": "runs/20261111-002653-sim",
+   "targets": 4,
+   "series": 1
+  },
+  {
+   "mode": "solo",
+   "drones": "T1",
+   "mission_s": 178.5,
+   "coverage_pct": 97.1,
+   "anomalies": 4,
+   "inspected": 4,
+   "photos": 20,
+   "latency_mean_s": 106.5,
+   "latency_max_s": 153.5,
+   "labels": {
+    "A1": null,
+    "A2": "battery",
+    "A3": "fire",
+    "A4": "person"
+   },
+   "min_dist_m": null,
+   "run_dir": "runs/20261111-002737-sim",
+   "targets": 4,
+   "series": 1
+  },
+  {
+   "mode": "swarm",
+   "drones": "T1,T2,T3",
+   "mission_s": 150.1,
+   "coverage_pct": 98.3,
+   "anomalies": 4,
+   "inspected": 4,
+   "photos": 20,
+   "latency_mean_s": 48.9,
+   "latency_max_s": 68.6,
+   "labels": {
+    "A1": null,
+    "A2": "battery",
+    "A3": "person",
+    "A4": "fire"
+   },
+   "min_dist_m": 1.258,
+   "run_dir": "runs/20261111-002827-sim",
+   "targets": 4,
+   "series": 2
+  },
+  {
+   "mode": "solo",
+   "drones": "T1",
+   "mission_s": 178.8,
+   "coverage_pct": 97.2,
+   "anomalies": 4,
+   "inspected": 4,
+   "photos": 20,
+   "latency_mean_s": 106.7,
+   "latency_max_s": 153.8,
+   "labels": {
+    "A1": null,
+    "A2": "battery",
+    "A3": "fire",
+    "A4": "person"
+   },
+   "min_dist_m": null,
+   "run_dir": "runs/20261111-002909-sim",
+   "targets": 4,
+   "series": 2
+  },
+  {
+   "mode": "swarm",
+   "drones": "T1,T2,T3",
+   "mission_s": 197.6,
+   "coverage_pct": 97.9,
+   "anomalies": 8,
+   "inspected": 8,
+   "photos": 35,
+   "latency_mean_s": 58.0,
+   "latency_max_s": 127.2,
+   "labels": {
+    "A1": null,
+    "A2": "fire",
+    "A3": "battery",
+    "A4": "battery",
+    "A5": "fire",
+    "A6": "person",
+    "A7": "person",
+    "A8": "battery"
+   },
+   "min_dist_m": 1.282,
+   "run_dir": "runs/20261111-002958-sim",
+   "targets": 8,
+   "series": 1
+  },
+  {
+   "mode": "solo",
+   "drones": "T1",
+   "mission_s": 243.1,
+   "coverage_pct": 97.6,
+   "anomalies": 8,
+   "inspected": 8,
+   "photos": 35,
+   "latency_mean_s": 128.1,
+   "latency_max_s": 193.6,
+   "labels": {
+    "A1": null,
+    "A2": "fire",
+    "A3": "battery",
+    "A4": "battery",
+    "A5": "fire",
+    "A6": "person",
+    "A7": "person",
+    "A8": "battery"
+   },
+   "min_dist_m": null,
+   "run_dir": "runs/20261111-003053-sim",
+   "targets": 8,
+   "series": 1
+  },
+  {
+   "mode": "swarm",
+   "drones": "T1,T2,T3",
+   "mission_s": 189.5,
+   "coverage_pct": 98.1,
+   "anomalies": 8,
+   "inspected": 8,
+   "photos": 35,
+   "latency_mean_s": 50.9,
+   "latency_max_s": 89.6,
+   "labels": {
+    "A1": null,
+    "A2": "fire",
+    "A3": "battery",
+    "A4": "fire",
+    "A5": "battery",
+    "A6": "battery",
+    "A7": "person",
+    "A8": "person"
+   },
+   "min_dist_m": 1.274,
+   "run_dir": "runs/20261111-003158-sim",
+   "targets": 8,
+   "series": 2
+  },
+  {
+   "mode": "solo",
+   "drones": "T1",
+   "mission_s": 242.4,
+   "coverage_pct": 97.2,
+   "anomalies": 8,
+   "inspected": 8,
+   "photos": 35,
+   "latency_mean_s": 127.7,
+   "latency_max_s": 192.9,
+   "labels": {
+    "A1": null,
+    "A2": "fire",
+    "A3": "battery",
+    "A4": "battery",
+    "A5": "fire",
+    "A6": "person",
+    "A7": "person",
+    "A8": "battery"
+   },
+   "min_dist_m": null,
+   "run_dir": "runs/20261111-003250-sim",
+   "targets": 8,
+   "series": 2
+  }
+ ],
+ "summary": {
+  "4_targets": {
+   "swarm": {
+    "mission_s": [
+     157.6,
+     150.1
+    ],
+    "mean_mission_s": 153.8,
+    "inspected": [
+     "4/4",
+     "4/4"
+    ],
+    "latency_mean_s": [
+     42.9,
+     48.9
+    ]
+   },
+   "solo": {
+    "mission_s": [
+     178.5,
+     178.8
+    ],
+    "mean_mission_s": 178.7,
+    "inspected": [
+     "4/4",
+     "4/4"
+    ],
+    "latency_mean_s": [
+     106.5,
+     106.7
+    ]
+   },
+   "time_ratio_solo_to_swarm": 1.16
+  },
+  "8_targets": {
+   "swarm": {
+    "mission_s": [
+     197.6,
+     189.5
+    ],
+    "mean_mission_s": 193.6,
+    "inspected": [
+     "8/8",
+     "8/8"
+    ],
+    "latency_mean_s": [
+     58.0,
+     50.9
+    ]
+   },
+   "solo": {
+    "mission_s": [
+     243.1,
+     242.4
+    ],
+    "mean_mission_s": 242.8,
+    "inspected": [
+     "8/8",
+     "8/8"
+    ],
+    "latency_mean_s": [
+     128.1,
+     127.7
+    ]
+   },
+   "time_ratio_solo_to_swarm": 1.25
+  }
+ }
+}

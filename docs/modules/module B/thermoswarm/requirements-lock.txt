@@ -1,0 +1,10 @@
+fastapi==0.162.3
+numpy==2.5.4
+opencv-python==5.0.0.93
+pillow==13.0.0
+pydantic==2.14.3
+starlette==1.10.0
+torch==2.15.0+cpu
+torchvision==0.29.2+cpu
+ultralytics==8.4.210
+uvicorn==0.54.0

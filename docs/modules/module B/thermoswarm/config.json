@@ -1,0 +1,217 @@
+{
+  "server": {
+    "http_host": "127.0.0.1",
+    "http_port": 8080,
+    "drone_host": "0.0.0.0",
+    "drone_port": 7700
+  },
+  "map_file": "aruco_map.txt",
+  "flight_bounds": [
+    -3.6,
+    3.6,
+    -2.1,
+    2.1
+  ],
+  "survey_bounds": [
+    -3.75,
+    3.75,
+    -2.25,
+    2.25
+  ],
+  "landing": {
+    "snap_m": 0.35,
+    "approach_alt_m": 0.8,
+    "final_alt_m": 0.45,
+    "tolerance_m": 0.06,
+    "hold_s": 1.0,
+    "align_timeout_s": 10.0,
+    "speed_mps": 0.3
+  },
+  "trees": {
+    "enabled": true,
+    "detector": "dark",
+    "yolo_weights": "models/trees.pt",
+    "yolo_conf": 0.35,
+    "tree_height_m": 1.6,
+    "min_crown_m": 0.25,
+    "max_crown_m": 1.6,
+    "dark_ratio": 0.45,
+    "min_roughness": 1.45,
+    "merge_radius_m": 0.45,
+    "confirm_observations": 3,
+    "link_radius_m": 0.5,
+    "not_tree_classes": ["heater"],
+    "inspect_healthy": true,
+    "healthy_views": 1,
+    "fps": 3.0,
+    "min_alt_m": 1.0,
+    "max_tilt_deg": 15
+  },
+  "rgb_camera": {"hfov_deg": 90.0},
+  "operator": {"password": "smena-ego"},
+  "separation": {
+    "drone_radius_m": 0.28,
+    "min_gap_m": 0.5,
+    "position_margin_m": 0.2,
+    "lookahead_m": 2.5
+  },
+  "link": {
+    "hold_after_s": 1.5,
+    "land_after_s": 6.0,
+    "slow_hold_s": 1.0,
+    "slow_resume_s": 0.6
+  },
+  "localization": {
+    "hold_after_s": 2.0,
+    "land_after_s": 10.0,
+    "max_blind_dz_m": 0.5
+  },
+  "battery": {
+    "cell_warn_v": 3.5,
+    "cell_land_v": 3.4
+  },
+  "flight": {
+    "takeoff_alt_m": 1.0,
+    "takeoff_stagger_s": 2.0,
+    "lock_timeout_s": 15.0,
+    "search_alt_m": 1.6,
+    "takeoff_retries": 2,
+    "takeoff_retry_s": 4.0,
+    "speed_mps": 0.4,
+    "step_m": 0.5,
+    "yaw_deg": 0,
+    "max_mission_s": 900
+  },
+  "thermal": {
+    "alt_m": 3.0,
+    "speed_mps": 0.3,
+    "camera": "Mileseey TR256i (256x192, 25 Hz, USB-C)",
+    "hfov_deg": 56,
+    "vfov_deg": 42,
+    "rotate_deg": 180,
+    "flip_h": false,
+    "flip_v": false,
+    "overlap": 0.3,
+    "threshold": 3.0,
+    "min_pixels": 3,
+    "target_height_m": 1.5,
+    "merge_radius_m": 0.6,
+    "height_prior_weight": 0.02,
+    "max_source_height_m": 3.0,
+    "confirm_observations": 2,
+    "max_tilt_deg": 20,
+    "grid_cell_m": 0.05,
+    "display_range": [
+      -2.0,
+      10.0
+    ],
+    "detector": "threshold",
+    "nn_weights": "models/thermal.pt",
+    "nn_conf": 0.4,
+    "nn_imgsz": 128,
+    "nn_range": [
+      -2.0,
+      12.0
+    ],
+    "sim_size": [
+      64,
+      48
+    ]
+  },
+  "inspect": {
+    "cruise_alt_m": 2.8,
+    "photo_alt_m": 2.6,
+    "settle_s": 2.0,
+    "task_timeout_s": 90,
+    "orbit_points": 4,
+    "orbit_radius_m": 0.5,
+    "orbit_settle_s": 1.0,
+    "thermal_inspects_if_alone": true
+  },
+  "yolo": {
+    "weights": "models/rgb.pt",
+    "conf": 0.35,
+    "imgsz": 640,
+    "priority_classes": ["tree_infected"],
+    "ignore_classes": [
+      "drone"
+    ]
+  },
+  "drones": [
+    {
+      "id": "T1",
+      "name": "Техник-1 · тепло",
+      "role": "thermal",
+      "priority": 3,
+      "color": "#ff7a45"
+    },
+    {
+      "id": "T2",
+      "name": "Техник-2 · фото",
+      "role": "rgb",
+      "priority": 2,
+      "color": "#4aa8ff"
+    },
+    {
+      "id": "T3",
+      "name": "Техник-3 · фото",
+      "role": "rgb",
+      "priority": 1,
+      "color": "#5fd17a"
+    }
+  ],
+  "sim": {
+    "starts": [
+      [
+        0.0,
+        -1.5
+      ],
+      [
+        -2.25,
+        -1.5
+      ],
+      [
+        2.25,
+        -1.5
+      ]
+    ],
+    "ambient_c": 21.0,
+    "trees": [
+      {"x": -2.6, "y": -0.3, "r": 0.32, "h": 1.6},
+      {"x": 0.4, "y": 1.4, "r": 0.32, "h": 1.6, "infected": true, "dT": 8.0},
+      {"x": 1.2, "y": -0.9, "r": 0.3, "h": 1.6},
+      {"x": -0.9, "y": 0.2, "r": 0.32, "h": 1.6, "infected": true, "dT": 7.0}
+    ],
+    "objects": [
+      {"x": -2.2, "y": -0.05, "dT": 9.0, "r": 0.12, "cls": "heater"},
+      {
+        "x": -1.9,
+        "y": 0.9,
+        "dT": 9.0,
+        "r": 0.18,
+        "cls": "fire"
+      },
+      {
+        "x": 1.4,
+        "y": 1.2,
+        "dT": 7.0,
+        "r": 0.15,
+        "cls": "person"
+      },
+      {
+        "x": 2.6,
+        "y": -0.4,
+        "dT": 6.0,
+        "r": 0.12,
+        "cls": "battery"
+      },
+      {
+        "x": -0.4,
+        "y": -0.6,
+        "dT": 5.0,
+        "r": 0.15,
+        "cls": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+# Optional: YOLO for RGB inspection photos and the IR neural detector (tools/yolo.py, tools/thermal_eval.py).
+# CPU build of PyTorch (smaller): pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+ultralytics>=8.3      # tested 8.4.210 (licence AGPL-3.0)
+torch>=2.2            # tested 2.15.0+cpu

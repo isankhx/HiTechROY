@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Оператор · разметка</title>
+<style>
+  :root { --bg:#0b0e13; --card:#141922; --line:#252d3a; --txt:#e6ebf2; --mut:#8b97a6; --acc:#4aa8ff; --ok:#3fbf6a; --bad:#ff4d6d; --warn:#ff9f43; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.4 system-ui, sans-serif; }
+  header { display:flex; gap:12px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header b { font-size:16px; }
+  .mut { color:var(--mut); }
+  .tools { display:flex; gap:6px; flex-wrap:wrap; }
+  button, input, select { font:inherit; color:var(--txt); background:#1b2230; border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+  button { cursor:pointer; }
+  button.on { border-color:var(--acc); background:#16304a; }
+  button.danger { border-color:#5a2230; color:#ff8fa3; }
+  main { display:grid; grid-template-columns: minmax(0,1fr) 340px; gap:12px; padding:12px 16px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; }
+  canvas { width:100%; display:block; background:#07090c; border-radius:6px; touch-action:none; cursor:crosshair; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td, th { padding:4px 6px; border-bottom:1px solid var(--line); text-align:left; }
+  tr.sel td { background:#16304a; }
+  tr { cursor:pointer; }
+  .tag { font-size:11px; padding:1px 5px; border-radius:4px; background:#2a3242; color:var(--mut); }
+  .tag.op { background:#3b2e10; color:#ffcf70; }
+  .st-inf { color:#ff8fa3; } .st-ok { color:#8ee6a8; }
+  #login { max-width:320px; margin:12vh auto; display:flex; flex-direction:column; gap:10px; }
+  #msg { min-height:1.4em; }
+  .err { color:#ff8fa3; }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:6px 0; }
+</style>
+</head>
+<body>
+<div id="login" class="card">
+  <b>Страница оператора</b>
+  <span class="mut">Ручная разметка ёлок и аномалий. В основном интерфейсе такие объекты помечены «ручн.».</span>
+  <input id="pw" type="password" placeholder="пароль (config.json → operator.password)" autocomplete="current-password">
+  <button id="pwGo">Войти</button>
+  <span id="pwMsg" class="err"></span>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <b>Оператор · разметка</b>
+    <span class="mut" id="phase">—</span>
+    <div class="tools">
+      <button data-tool="select" class="on" title="Выбрать, перетащить (Esc)">✋ выбор</button>
+      <button data-tool="tree">🌲 ёлка здоровая</button>
+      <button data-tool="tree_inf">🌲 ёлка заражённая</button>
+      <button data-tool="anomaly">🔥 аномалия</button>
+      <input id="anLabel" list="labels" placeholder="класс аномалии" style="width:150px">
+      <datalist id="labels"><option value="heater"><option value="tree_infected"><option value="tree"></datalist>
+    </div>
+    <span class="mut" id="cur"></span>
+    <span id="msg"></span>
+  </header>
+  <main>
+    <div class="card"><canvas id="map"></canvas></div>
+    <div>
+      <div class="card" id="selCard">
+        <b id="selTitle">Ничего не выбрано</b>
+        <div id="selBody" class="mut">Кликните объект на карте или в списке. Новый объект — выберите инструмент сверху и кликните по карте.</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <b>Объекты</b>
+        <table><thead><tr><th>ID</th><th>X</th><th>Y</th><th>что</th><th></th></tr></thead><tbody id="list"></tbody></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let KEY = '';
+try { KEY = sessionStorage.getItem('opkey') || ''; } catch (e) {}
+const S = { cfg: null, st: null, tool: 'select', sel: null, drag: null, hits: [] };
+
+async function api(path, body) {
+  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Op-Key': KEY },
+    body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || r.statusText);
+  return j;
+}
+function say(t, bad) { const m = $('#msg'); m.textContent = t; m.className = bad ? 'err' : 'mut'; }
+
+async function login(k) {
+  KEY = k;
+  try { await api('/api/op/check'); } catch (e) { $('#pwMsg').textContent = e.message; return; }
+  try { sessionStorage.setItem('opkey', k); } catch (e) {}
+  $('#login').hidden = true; $('#app').hidden = false;
+  start();
+}
+$('#pwGo').onclick = () => login($('#pw').value);
+$('#pw').onkeydown = (e) => { if (e.key === 'Enter') login($('#pw').value); };
+if (KEY) login(KEY);
+
+async function start() {
+  S.cfg = await (await fetch('/api/config')).json();
+  S.st = await (await fetch('/api/state')).json();
+  const es = new EventSource('/api/events');
+  es.addEventListener('state', (e) => { S.st = JSON.parse(e.data); if (!S.drag) { draw(); list(); } });
+  window.onresize = draw;
+  draw(); list();
+}
+
+document.querySelectorAll('[data-tool]').forEach((b) => (b.onclick = () => {
+  S.tool = b.dataset.tool;
+  document.querySelectorAll('[data-tool]').forEach((x) => x.classList.toggle('on', x === b));
+}));
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') document.querySelector('[data-tool=select]').click();
+  if ((e.key === 'Delete' || e.key === 'Backspace') && S.sel) del(S.sel);
+});
+
+// ---------- geometry ----------
+function geo() {
+  const c = $('#map'), w = c.clientWidth, b = S.cfg.flight_bounds, sb = S.cfg.survey_bounds;
+  const x0 = Math.min(b[0], sb[0]) - 0.3, x1 = Math.max(b[1], sb[1]) + 0.3, y0 = Math.min(b[2], sb[2]) - 0.3, y1 = Math.max(b[3], sb[3]) + 0.3;
+  const k = w / (x1 - x0), h = Math.round((y1 - y0) * k);
+  return { c, w, h, k, X: (x) => (x - x0) * k, Y: (y) => (y1 - y) * k, wx: (px) => px / k + x0, wy: (py) => y1 - py / k };
+}
+function objects() { return [...(S.st.trees || []), ...(S.st.anomalies || [])]; }
+function find(id) { return objects().find((o) => o.id === id); }
+
+function draw() {
+  if (!S.cfg || !S.st) return;
+  const G = geo(), c = G.c, dpr = window.devicePixelRatio || 1;
+  c.width = G.w * dpr; c.height = G.h * dpr; c.style.height = G.h + 'px';
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#07090c'; g.fillRect(0, 0, G.w, G.h);
+  const sb = S.cfg.survey_bounds;
+  g.fillStyle = '#121822'; g.fillRect(G.X(sb[0]), G.Y(sb[3]), (sb[1] - sb[0]) * G.k, (sb[3] - sb[2]) * G.k);
+  g.strokeStyle = '#2a3546'; g.lineWidth = 1;
+  for (const m of S.cfg.markers) {
+    const s = m.length * G.k; g.strokeRect(G.X(m.x) - s / 2, G.Y(m.y) - s / 2, s, s);
+    g.fillStyle = '#4b5668'; g.font = '10px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(m.id, G.X(m.x), G.Y(m.y));
+  }
+  S.hits = [];
+  for (const e of S.st.trees || []) {
+    const r = Math.max(9, ((e.crown_m || 0.5) / 2) * G.k), inf = e.infected;
+    g.fillStyle = inf ? 'rgba(255,77,109,.22)' : 'rgba(46,160,80,.3)';
+    g.strokeStyle = inf ? '#ff4d6d' : '#3fbf6a'; g.lineWidth = e.id === S.sel ? 3.5 : 2;
+    g.beginPath();
+    for (let i = 0; i <= 24; i++) { const a = (i / 24) * 6.283, rr = i % 2 ? r * 0.78 : r; const px = G.X(e.x) + rr * Math.cos(a), py = G.Y(e.y) + rr * Math.sin(a); i ? g.lineTo(px, py) : g.moveTo(px, py); }
+    g.fill(); g.stroke();
+    label(g, G.X(e.x), G.Y(e.y) + r + 2, e.id + (e.source === 'operator' ? ' ✎' : ''), inf ? '#ffb3c1' : '#b7f0c8');
+    S.hits.push({ id: e.id, x: G.X(e.x), y: G.Y(e.y), r: r + 4 });
+  }
+  for (const a of S.st.anomalies || []) {
+    const r = 9;
+    g.fillStyle = 'rgba(255,159,67,.25)'; g.strokeStyle = a.id === S.sel ? '#fff' : '#ff9f43'; g.lineWidth = a.id === S.sel ? 3 : 2;
+    g.beginPath(); g.arc(G.X(a.x), G.Y(a.y), r, 0, 7); g.fill(); g.stroke();
+    label(g, G.X(a.x), G.Y(a.y) + r + 2, a.id + (a.label ? ' · ' + a.label : '') + (a.source === 'operator' ? ' ✎' : ''), '#ffd7a8');
+    S.hits.push({ id: a.id, x: G.X(a.x), y: G.Y(a.y), r: r + 5 });
+  }
+  for (const d of S.st.drones || []) {
+    if (!d.pos) continue;
+    const r = Math.max(7, (S.st.R || 0.28) * G.k);
+    g.strokeStyle = d.color; g.lineWidth = 2; g.beginPath(); g.arc(G.X(d.pos[0]), G.Y(d.pos[1]), r, 0, 7); g.stroke();
+    label(g, G.X(d.pos[0]), G.Y(d.pos[1]) - 6, d.id, d.color);
+  }
+  $('#phase').textContent = S.st.phase_name || S.st.phase;
+}
+function label(g, x, y, t, col) {
+  g.font = '600 11px system-ui'; g.textAlign = 'center'; g.textBaseline = 'top';
+  g.lineWidth = 3; g.strokeStyle = '#07090c'; g.strokeText(t, x, y); g.fillStyle = col; g.fillText(t, x, y);
+}
+
+// ---------- list + selection ----------
+function list() {
+  const rows = objects().map((o) => {
+    const what = o.kind === 'tree' ? `<span class="${o.infected ? 'st-inf' : 'st-ok'}">ёлка ${o.infected ? 'заражена' : 'здорова'}</span>`
+      : `аномалия${o.label ? ' · ' + o.label : ''}`;
+    return `<tr data-id="${o.id}" class="${o.id === S.sel ? 'sel' : ''}"><td><b>${o.id}</b></td><td>${o.x.toFixed(2)}</td><td>${o.y.toFixed(2)}</td><td>${what}</td>` +
+      `<td><span class="tag ${o.source === 'operator' ? 'op' : ''}">${o.source === 'operator' ? 'ручн.' : 'авто'}</span></td></tr>`;
+  });
+  $('#list').innerHTML = rows.join('') || '<tr><td colspan="5" class="mut">пусто</td></tr>';
+  document.querySelectorAll('#list tr[data-id]').forEach((tr) => (tr.onclick = () => select(tr.dataset.id)));
+  panel();
+}
+function select(id) { S.sel = id; draw(); list(); }
+function panel() {
+  const o = S.sel && find(S.sel);
+  if (!o) { $('#selTitle').textContent = 'Ничего не выбрано'; return; }
+  $('#selTitle').textContent = `${o.id} · ${o.kind === 'tree' ? 'ёлка' : 'аномалия'} · ${o.source === 'operator' ? 'ручн.' : 'авто'} · ${o.status}`;
+  const b = $('#selBody'); b.className = '';
+  b.innerHTML = `<div class="row">X <input id="ex" type="number" step="0.05" value="${o.x.toFixed(2)}" style="width:80px">
+      Y <input id="ey" type="number" step="0.05" value="${o.y.toFixed(2)}" style="width:80px"><button id="eMove">Переместить</button></div>` +
+    (o.kind === 'tree'
+      ? `<div class="row"><button id="eInf">${o.infected ? 'Сделать здоровой' : 'Сделать заражённой'}</button></div>`
+      : `<div class="row">класс <input id="eLab" list="labels" value="${o.label || ''}" style="width:150px"><button id="eLabGo">Задать</button></div>`) +
+    `<div class="row"><button class="danger" id="eDel">Удалить</button></div>`;
+  $('#eMove').onclick = () => upd({ id: o.id, x: +$('#ex').value, y: +$('#ey').value });
+  if ($('#eInf')) $('#eInf').onclick = () => upd({ id: o.id, infected: !o.infected });
+  if ($('#eLabGo')) $('#eLabGo').onclick = () => upd({ id: o.id, label: $('#eLab').value.trim() });
+  $('#eDel').onclick = () => del(o.id);
+}
+async function upd(body) { try { await api('/api/op/update', body); say('сохранено'); } catch (e) { say(e.message, true); } }
+async function del(id) {
+  try { await api('/api/op/delete', { id }); S.sel = null; say(id + ' удалён'); } catch (e) { say(e.message, true); }
+}
+
+// ---------- pointer ----------
+const cv = $('#map');
+function hit(px, py) { let best = null; for (const h of S.hits) { const d = Math.hypot(h.x - px, h.y - py); if (d < h.r && (!best || d < best.d)) best = { id: h.id, d }; } return best && best.id; }
+cv.addEventListener('pointerdown', async (e) => {
+  const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, G = geo();
+  if (S.tool === 'select') {
+    const id = hit(px, py);
+    select(id);
+    if (id) { S.drag = { id, moved: false }; cv.setPointerCapture(e.pointerId); }
+    return;
+  }
+  const body = { kind: S.tool === 'anomaly' ? 'anomaly' : 'tree', x: +G.wx(px).toFixed(3), y: +G.wy(py).toFixed(3),
+    infected: S.tool === 'tree_inf', label: S.tool === 'anomaly' ? ($('#anLabel').value.trim() || null) : null };
+  try { const j = await api('/api/op/add', body); S.sel = j.id; say(j.id + ' добавлен'); } catch (err) { say(err.message, true); }
+});
+cv.addEventListener('pointermove', (e) => {
+  const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, G = geo();
+  $('#cur').textContent = `x ${G.wx(px).toFixed(2)}  y ${G.wy(py).toFixed(2)}`;
+  if (!S.drag) return;
+  const o = find(S.drag.id); if (!o) return;
+  o.x = G.wx(px); o.y = G.wy(py); S.drag.moved = true; draw();
+});
+cv.addEventListener('pointerup', async () => {
+  const d = S.drag; S.drag = null;
+  if (!d || !d.moved) return;
+  const o = find(d.id);
+  if (o) await upd({ id: d.id, x: +o.x.toFixed(3), y: +o.y.toFixed(3) });
+});
+</script>
+</body>
+</html>

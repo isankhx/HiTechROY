@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ThermoSwarm</title>
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">ThermoSwarm<span id="modeBadge" class="badge">—</span></div>
+  <div class="phase"><span id="phaseDot" class="dot"></span><span id="phase">нет данных</span></div>
+  <div class="stats">
+    <span title="Покрытие поля тепловизором">покрытие <b id="cov">0</b>%</span>
+    <span title="Использованные тепловые кадры">кадров <b id="frames">0</b></span>
+    <span title="Аномалии / осмотрено">аномалий <b id="nAn">0</b> / <b id="nIns">0</b></span>
+    <span title="Ёлки всего / заражённых">ёлок <b id="nTr">0</b> / <b id="nInf" class="inf">0</b></span>
+    <span title="Время миссии от старта">время <b id="mtime">—</b> с</span>
+  </div>
+  <div class="actions">
+    <button id="btnStart" class="btn go">▶ Старт роя</button>
+    <button id="btnPause" class="btn">⏸ Пауза</button>
+    <button id="btnHome" class="btn">⌂ Домой и посадка</button>
+    <button id="btnLand" class="btn danger">⬇ ПОСАДИТЬ ВСЕХ</button>
+    <button id="btnSettings" class="btn ghost">⚙ Параметры</button>
+    <a id="btnReport" class="btn ghost" href="/api/report.zip">⤓ Отчёт</a>
+    <button id="btnReset" class="btn ghost" title="Очистить карту и аномалии">✕</button>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="col-left">
+    <div class="card map-card">
+      <div class="card-head">
+        <h2>Карта поля</h2>
+        <div class="layers">
+          <label><input type="checkbox" data-layer="heat" checked> тепло</label>
+          <label><input type="checkbox" data-layer="markers" checked> метки</label>
+          <label><input type="checkbox" data-layer="route" checked> маршруты</label>
+          <label><input type="checkbox" data-layer="trail" checked> следы</label>
+          <label><input type="checkbox" data-layer="zone" checked> зазор</label>
+          <label><input type="checkbox" data-layer="trees" checked> ёлки</label>
+        </div>
+        <span id="cursor" class="muted mono"></span>
+      </div>
+      <div class="map-wrap"><canvas id="map"></canvas></div>
+      <div class="legend">
+        <span class="scale"><i id="heatScale"></i><span id="heatRange" class="mono">ΔT</span></span>
+        <span><i class="lg an-confirmed"></i>ждёт осмотра</span>
+        <span><i class="lg an-assigned"></i>дрон летит</span>
+        <span><i class="lg an-inspected"></i>осмотрена</span>
+        <span><i class="lg an-other"></i>пропущена</span>
+        <span><i class="lg tree-ok"></i>ёлка</span>
+        <span><i class="lg tree-inf"></i>заражена</span>
+        <span class="muted" id="sepInfo"></span>
+      </div>
+      <div class="manual" id="manualBar">
+        <b>Ручное управление</b>
+        <select id="manDrone"></select>
+        <label>высота <input type="range" id="manAlt" min="0.6" max="4.5" step="0.1" value="2.4"> <span id="manAltV" class="mono">2.4 м</span></label>
+        <button class="btn sm" id="manTakeoff">Взлёт</button>
+        <label class="manclick"><input type="checkbox" id="manClick"> клик по карте = лететь</label>
+        <button class="btn sm" id="manHold">Зависнуть</button>
+        <button class="btn sm outline-danger" id="manLand">Сесть</button>
+        <span id="manMsg" class="small"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Ёлки</h2><span class="muted" id="treeDet"></span></div>
+      <div class="table-wrap">
+        <table id="trTable">
+          <thead><tr><th>ID</th><th>X, м</th><th>Y, м</th><th>крона, м</th><th>набл.</th><th>состояние</th><th>тепло</th><th>осмотр</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="trEmpty" class="empty">Ёлок пока нет. Они появятся во время облёта (RGB-камеры дронов).</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Аномалии</h2><span class="muted" id="detName"></span></div>
+      <div class="table-wrap">
+        <table id="anTable">
+          <thead><tr><th>ID</th><th>X, м</th><th>Y, м</th><th title="Высота источника над полом (триангуляция)">h, м</th><th>±, м</th><th>ΔT</th><th>набл.</th><th>статус</th><th>дрон</th><th>объект</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="anEmpty" class="empty">Аномалий пока нет. Они появятся во время облёта.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="col-right">
+    <div class="card"><div id="drones" class="drones"></div></div>
+    <div class="card">
+      <div class="card-head"><h2>Камеры</h2></div>
+      <div id="cams" class="cams"></div>
+    </div>
+    <div class="card" id="faultCard" hidden>
+      <div class="card-head"><h2>Отказы (симуляция)</h2><span class="muted">что сломать и у кого</span></div>
+      <div class="faults">
+        <select id="faultDrone"></select>
+        <select id="faultKind"></select>
+        <button id="faultGo" class="btn sm danger">Сломать</button>
+        <button id="faultClear" class="btn sm ghost" title="Снять все отказы у выбранного дрона">Починить</button>
+      </div>
+      <div id="faultActive" class="muted small"></div>
+    </div>
+    <div class="card log-card">
+      <div class="card-head"><h2>Журнал</h2></div>
+      <div id="log" class="log mono"></div>
+    </div>
+  </section>
+</main>
+
+<div id="calModal" class="modal" hidden>
+  <div class="modal-box cal-box">
+    <div class="card-head"><h2>Калибровка наложения по точкам</h2>
+      <label class="small"><input type="radio" name="calMode" value="points" checked> точки</label>
+      <label class="small"><input type="radio" name="calMode" value="drag"> перетаскивание</label>
+      <label class="small"><input type="checkbox" id="calShow"> наложение справа</label>
+      <button class="btn ghost" id="calClose">✕</button></div>
+    <div class="cal-grid">
+      <div><div class="sub">Тепловизор (кадр заморожен)</div><canvas id="calT" width="480" height="360"></canvas></div>
+      <div><div class="sub">RGB (кадр заморожен)</div><canvas id="calR" width="480" height="360"></canvas></div>
+    </div>
+    <div class="cal-hint" id="calHint"></div>
+    <div class="cal-row"><span class="muted small">пары:</span><span id="calPairs"></span></div>
+    <div class="cal-row mono small" id="calParams"></div>
+    <div class="cal-row small" id="calRes"></div>
+    <div class="set-foot">
+      <span class="muted small">Совет: 4–6 тёплых точек по разным углам кадра (кончик пальца, край кружки с горячей водой), камеры неподвижны.</span>
+      <button class="btn ghost" id="calGrab">Новые кадры</button>
+      <button class="btn ghost" id="calClear">Очистить точки</button>
+      <button class="btn" id="calFit">Подобрать</button>
+      <button class="btn go" id="calApply">Применить</button>
+    </div>
+  </div>
+</div>
+
+<div id="setModal" class="modal" hidden>
+  <div class="modal-box set-box">
+    <div class="card-head"><h2>Параметры полёта</h2><span class="muted" id="setNote"></span><button class="btn ghost" id="setClose">✕</button></div>
+    <div id="setList" class="set-list"></div>
+    <div class="set-foot">
+      <span class="muted mono small" id="setInfo"></span>
+      <button class="btn ghost" id="setUndo">Отменить</button>
+      <button class="btn go" id="setSave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-box">
+    <div class="card-head"><h2 id="mTitle">Аномалия</h2><button class="btn ghost" id="mClose">✕</button></div>
+    <div class="modal-body">
+      <div>
+        <div class="sub">Тепловой кадр (ΔT к фону, интерполяция)</div>
+        <canvas id="mThermal" width="480" height="360"></canvas>
+        <div id="mThermalInfo" class="muted mono small"></div>
+      </div>
+      <div>
+        <div class="sub">Фото осмотра <label class="small"><input type="checkbox" id="mAnn" checked> разметка YOLO</label></div>
+        <img id="mPhoto" alt="">
+        <div id="mNoPhoto" class="empty">Фото ещё нет</div>
+        <div id="mViews" class="views"></div>
+        <div id="mDets"></div>
+      </div>
+    </div>
+    <div id="mMeta" class="meta mono small"></div>
+  </div>
+</div>
+<script src="/web/app.js"></script>
+</body>
+</html>

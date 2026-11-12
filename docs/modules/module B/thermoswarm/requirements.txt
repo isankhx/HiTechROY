@@ -1,0 +1,7 @@
+# Ground server (laptop), Python 3.10+. Versions tested 2026-11-10 on Python 3.12.3:
+fastapi>=0.100        # tested 0.162.3
+uvicorn>=0.23         # tested 0.54.0
+numpy>=1.24           # tested 2.5.4
+pillow>=9.0           # tested 13.0.0
+opencv-python-headless>=4.8   # tree detector, RGB camera model (tested 5.0.0)
+# Neural detectors (YOLO on RGB photos, optional IR network): pip install -r requirements-nn.txt

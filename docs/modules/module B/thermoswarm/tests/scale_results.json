@@ -1,0 +1,27 @@
+{
+ "date": "2026-11-11 00:10",
+ "results": [
+  {
+   "drones": 3,
+   "mission_s": 201.0,
+   "anomalies": 8,
+   "inspected": 8,
+   "latency_mean_s": 65.6,
+   "min_dist_m": 1.249,
+   "server_cpu_share_of_one_core_incl_sim": 0.12,
+   "speed": 3.0,
+   "run_dir": "runs/20261111-000835-sim"
+  },
+  {
+   "drones": 5,
+   "mission_s": 185.0,
+   "anomalies": 8,
+   "inspected": 8,
+   "latency_mean_s": 54.7,
+   "min_dist_m": 1.238,
+   "server_cpu_share_of_one_core_incl_sim": 0.15,
+   "speed": 3.0,
+   "run_dir": "runs/20261111-000947-sim"
+  }
+ ]
+}
